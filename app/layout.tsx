@@ -1,29 +1,26 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Body type is Inter, as on the Opencommerce site. Display and labels use the Neue Haas
+// stack in globals.css, which falls back to Helvetica Neue.
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Agentcard shopping agent",
   icons: { icon: "/agentcard-trueblue-symbol.svg" },
-  description: "UI-only demo of the opencommerce shopping chat",
+  description: "Find products, book tables, and arrange deliveries with the Opencommerce shopping agent. An interactive demo by Agentcard.",
 };
+
+export const viewport: Viewport = { colorScheme: "light" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

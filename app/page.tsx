@@ -13,9 +13,9 @@ import {
 } from "lucide-react"
 
 import { streamChat, type ChatLink, type ChatProduct } from "@/lib/chat-stream"
+import { BinaryStage } from "@/components/binary-stage"
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Button } from "@/components/ui/button"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from "@/components/ui/empty"
 import {
   InputGroup,
   InputGroupAddon,
@@ -124,118 +124,138 @@ export default function ChatPage() {
   }
 
   return (
-    <main className="mx-auto flex h-svh w-full max-w-3xl flex-col">
-      <header className="flex items-center justify-between gap-4 px-6 py-5">
-        <div className="flex items-center gap-3">
+    <div className="chat-app">
+      <BinaryStage fade="in" className="chat-ascii" />
+      <header className="site-header">
+        <div className="nav-tray site-brand">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/agentcard-trueblue-main.svg" alt="Agentcard" className="h-6 w-auto" />
-          <span className="rounded-full bg-secondary px-2.5 py-0.5 font-mono text-[11px] tracking-[0.12em] text-primary uppercase">
-            Shopping agent
-          </span>
+          <img src="/agentcard-trueblue-main.svg" alt="Agentcard" className="h-6 w-auto max-[380px]:h-5" />
+          <span className="brand-label">Shopping agent</span>
         </div>
-        <div className="flex items-center gap-3">
-          <code className="hidden text-xs text-muted-foreground sm:block">{shopperId ?? "…"}</code>
-          <Button variant="outline" size="icon" aria-label="New shopper" onClick={reset} disabled={busy}>
+        <div className="nav-tray">
+          <Button size="sm" className="rounded-md max-sm:size-8 max-sm:p-0" aria-label="New chat" onClick={reset} disabled={busy}>
             <RotateCwIcon />
+            <span className="max-sm:hidden">New chat</span>
           </Button>
         </div>
       </header>
 
-      <MessageScrollerProvider autoScroll>
-        <div className="min-h-0 flex-1">
-          {turns.length === 0 ? (
-            <Empty className="h-full">
-              <EmptyHeader>
-                <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-primary">
+      <main className="chat-main">
+        <MessageScrollerProvider autoScroll>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {turns.length === 0 ? (
+              <section className="chat-welcome" aria-labelledby="welcome-title">
+                <div className="welcome-mark" aria-hidden="true">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src="/agentcard-white-symbol.svg" alt="" className="size-6" />
                 </div>
-                <EmptyTitle className="text-lg">What should we buy?</EmptyTitle>
-                <EmptyDescription>
-                  Ask for a product, a restaurant table or a delivery. This is a UI-only demo: replies are scripted and
-                  nothing is ever bought.
-                </EmptyDescription>
-              </EmptyHeader>
-              <EmptyContent className="flex w-full max-w-md flex-col gap-2">
-                {SUGGESTIONS.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => void send(suggestion)}
-                    disabled={!shopperId}
-                    className="w-full rounded-xl border bg-background px-4 py-3 text-left text-sm transition-colors hover:border-primary hover:bg-secondary disabled:opacity-50"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </EmptyContent>
-            </Empty>
-          ) : (
-            <MessageScroller className="h-full">
-              <MessageScrollerViewport>
-                <MessageScrollerContent aria-busy={busy} className="gap-6 px-6 pb-4">
-                  {turns.map((turn) =>
-                    turn.role === "user" ? (
-                      <MessageScrollerItem key={turn.id} messageId={turn.id} scrollAnchor>
-                        <Message align="end">
-                          <MessageContent>
-                            <Bubble align="end">
-                              <BubbleContent>{turn.text}</BubbleContent>
-                            </Bubble>
-                          </MessageContent>
-                        </Message>
-                      </MessageScrollerItem>
-                    ) : (
-                      <MessageScrollerItem key={turn.id} messageId={turn.id}>
-                        <AssistantTurn turn={turn} busy={busy} onChoose={(link) => choose(turn.id, link)} />
-                      </MessageScrollerItem>
-                    ),
-                  )}
-                </MessageScrollerContent>
-              </MessageScrollerViewport>
-              <MessageScrollerButton />
-            </MessageScroller>
-          )}
-        </div>
-      </MessageScrollerProvider>
+                <h1 id="welcome-title" className="welcome-title">What should we buy?</h1>
+                <p className="welcome-description">
+                  Ask for a product, a restaurant table, a delivery, or anything else.
+                </p>
+                <div className="suggestions" aria-label="Try a suggestion">
+                  {SUGGESTIONS.map((text) => (
+                    <button
+                      key={text}
+                      type="button"
+                      onClick={() => void send(text)}
+                      disabled={!shopperId}
+                      className="suggest disabled:opacity-50"
+                    >
+                      {text}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <MessageScroller className="h-full">
+                <MessageScrollerViewport>
+                  <MessageScrollerContent aria-busy={busy} aria-label="Conversation" className="gap-6 px-1 pt-8 pb-4">
+                    {turns.map((turn) =>
+                      turn.role === "user" ? (
+                        <MessageScrollerItem key={turn.id} messageId={turn.id} scrollAnchor>
+                          <Message align="end">
+                            <MessageContent>
+                              <Bubble align="end">
+                                <BubbleContent>{turn.text}</BubbleContent>
+                              </Bubble>
+                            </MessageContent>
+                          </Message>
+                        </MessageScrollerItem>
+                      ) : (
+                        <MessageScrollerItem key={turn.id} messageId={turn.id}>
+                          <AssistantTurn turn={turn} busy={busy} onChoose={(link) => choose(turn.id, link)} />
+                        </MessageScrollerItem>
+                      ),
+                    )}
+                  </MessageScrollerContent>
+                </MessageScrollerViewport>
+                <MessageScrollerButton />
+              </MessageScroller>
+            )}
+          </div>
+        </MessageScrollerProvider>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          void send(draft)
-        }}
-        className="px-6 pt-2 pb-6"
-      >
-        <InputGroup className="rounded-2xl">
-          <InputGroupTextarea
-            name="message"
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault()
-                void send(draft)
-              }
-            }}
-            placeholder="Ask the agent to buy something…"
-            rows={1}
-            className="min-h-12"
-          />
-          <InputGroupAddon align="block-end">
-            <InputGroupButton
-              type="submit"
-              variant="default"
-              size="icon-sm"
-              className="ml-auto rounded-full"
-              aria-label="Send"
-              disabled={busy || !draft.trim()}
-            >
-              {busy ? <LoaderCircleIcon className="animate-spin" /> : <ArrowUpIcon />}
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
-      </form>
-    </main>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void send(draft)
+          }}
+          className="composer"
+        >
+          <div className="window focus-within:border-primary">
+            <div className="window-bar">
+              <span aria-hidden="true">↳</span>
+              <label htmlFor="message">Shopping agent</label>
+              <WindowMark />
+            </div>
+            {/* Only the send key is disabled while the draft is empty. */}
+            <InputGroup className="rounded-none border-0 bg-card shadow-none has-disabled:bg-card has-disabled:opacity-100 has-[[data-slot=input-group-control]:focus-visible]:ring-0">
+              <InputGroupTextarea
+                id="message"
+                name="message"
+                aria-describedby="demo-note"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                    e.preventDefault()
+                    void send(draft)
+                  }
+                }}
+                placeholder="Ask the agent to buy something…"
+                rows={1}
+                className="min-h-12 max-h-40 px-3 py-3"
+              />
+              <InputGroupAddon align="block-end" className="px-3 pb-3">
+                <span className="hidden font-label text-xs font-normal sm:inline">
+                  Enter to send · Shift + Enter for a new line
+                </span>
+                <InputGroupButton
+                  type="submit"
+                  variant="default"
+                  size="icon-sm"
+                  className="ml-auto"
+                  aria-label="Send"
+                  disabled={busy || !shopperId || !draft.trim()}
+                >
+                  {busy ? <LoaderCircleIcon className="animate-spin" /> : <ArrowUpIcon />}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </div>
+          <p id="demo-note" className="demo-note">Demo only. Replies are scripted and nothing is purchased.</p>
+        </form>
+      </main>
+    </div>
+  )
+}
+
+function WindowMark() {
+  return (
+    <span className="window-mark" aria-hidden="true">
+      [<svg viewBox="0 0 12 12"><path d="M6 .5v11M1.24 3.25l9.52 5.5M1.24 8.75l9.52-5.5" /></svg>]
+    </span>
   )
 }
 
@@ -245,6 +265,10 @@ function AssistantTurn({ turn, busy, onChoose }: { turn: Turn; busy: boolean; on
   return (
     <Message>
       <MessageContent className="gap-3">
+        <div className="flex items-center gap-2 font-label text-xs text-muted-foreground">
+          <WindowMark />
+          <span>Shopping agent</span>
+        </div>
         {turn.pending && !turn.text ? (
           <Bubble variant="muted">
             <BubbleContent className="flex items-center gap-2 text-muted-foreground">
@@ -278,7 +302,7 @@ function AssistantTurn({ turn, busy, onChoose }: { turn: Turn; busy: boolean; on
           </div>
         )}
         {products.length > 0 && (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3">
             {products.map((link) => (
               <ProductCard
                 key={link.url}
@@ -292,7 +316,7 @@ function AssistantTurn({ turn, busy, onChoose }: { turn: Turn; busy: boolean; on
           </div>
         )}
         {!turn.pending && turn.totalMs !== undefined && (
-          <MessageFooter className="px-0">
+          <MessageFooter className="px-0 font-label font-normal">
             {seconds(turn.totalMs)}
             {turn.firstWordMs !== undefined && turn.totalMs - turn.firstWordMs > 1000
               ? ` · first word at ${seconds(turn.firstWordMs)}`
@@ -323,7 +347,7 @@ function ProductCard({
   return (
     <div
       data-chosen={chosen}
-      className="group/product flex flex-col overflow-hidden rounded-xl border bg-card transition-colors data-[chosen=true]:border-primary data-[chosen=true]:ring-2 data-[chosen=true]:ring-primary/20"
+      className="group/product product-card flex flex-col overflow-hidden"
     >
       <button
         type="button"
@@ -332,7 +356,7 @@ function ProductCard({
         className="flex flex-1 flex-col text-left disabled:cursor-default"
         aria-label={`Buy ${link.title ?? "this product"}`}
       >
-        <div className="flex aspect-square items-center justify-center bg-muted p-3">
+        <div className="flex aspect-square items-center justify-center border-b bg-muted p-3">
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -340,7 +364,7 @@ function ProductCard({
               alt=""
               loading="lazy"
               onError={() => setImageFailed(true)}
-              className="size-full rounded-lg object-contain mix-blend-multiply"
+              className="size-full object-contain mix-blend-multiply"
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
@@ -349,12 +373,12 @@ function ProductCard({
         </div>
         <div className="flex flex-1 flex-col gap-1 p-3">
           {product?.store && (
-            <span className="font-mono text-[10px] tracking-[0.12em] text-muted-foreground uppercase">
+            <span className="font-label text-xs text-muted-foreground">
               {product.store}
             </span>
           )}
           <span className="line-clamp-2 text-sm leading-snug font-medium">{link.title ?? link.url}</span>
-          {link.price && <span className="text-sm font-semibold text-primary">{link.price}</span>}
+          {link.price && <span className="font-label text-sm font-medium text-primary">{link.price}</span>}
         </div>
       </button>
       <div className="flex items-center gap-2 border-t p-2">
